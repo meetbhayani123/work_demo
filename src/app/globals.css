@@ -1,26 +1,80 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+  --primary-pink: #e91e63;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  /* Modern premium gradient background purple/magenta to match the vibe */
+  background: linear-gradient(135deg, #a020f0 0%, #302b63 100%);
+  min-height: 100vh;
+}
+
+/* Custom Steps Styling to place Title ABOVE Icon */
+.custom-steps .ant-steps-item-container {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+}
+
+.custom-steps .ant-steps-item-content {
+  margin-top: 0 !important;
+  margin-bottom: 8px;
+  /* Space between title and icon */
+  text-align: center;
+  width: 100%;
+}
+
+.custom-steps .ant-steps-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Remove the tail connecting lines for a cleaner look or adjust position */
+/* The default tail absolute positioning might be messed up by flex-direction: column-reverse */
+/* Let's try to fix the tail position */
+.custom-steps .ant-steps-item-tail {
+  top: 35px !important;
+  /* Move it down to align with icons */
+  padding: 0 10px;
+}
+
+/* Icon styling */
+.ant-steps-item-process .ant-steps-item-icon {
+  background-color: var(--primary-pink) !important;
+  border-color: var(--primary-pink) !important;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon {
+  border-color: var(--primary-pink) !important;
+  background-color: transparent !important;
+}
+
+.ant-steps-item-finish .ant-steps-item-icon>.ant-steps-icon {
+  color: var(--primary-pink) !important;
+}
+
+.ant-steps-item-wait .ant-steps-item-icon {
+  border-color: #ccc !important;
+}
+
+/* Tail color */
+.ant-steps-item-finish>.ant-steps-item-container>.ant-steps-item-tail::after {
+  background-color: var(--primary-pink) !important;
+}
+
+.ant-btn-primary {
+  background-color: var(--primary-pink) !important;
+}
+
+/* Card overrides */
+.ant-card-body {
+  padding: 0 !important;
 }
