@@ -26,7 +26,7 @@ const StepCompanyInfo: React.FC = () => {
             <Form.Item
                 label="Description"
                 name="companyDescription"
-                rules={[{ required: true, message: 'Please enter description' }]}
+                rules={[{ required: false }]}
             >
                 <Input.TextArea
                     placeholder="Describe your company..."

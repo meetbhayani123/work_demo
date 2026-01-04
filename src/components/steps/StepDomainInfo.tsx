@@ -18,7 +18,7 @@ const StepDomainInfo: React.FC = () => {
             <Form.Item
                 label="Description"
                 name="domainDescription"
-                rules={[{ required: true, message: 'Please enter description' }]}
+                rules={[{ required: false }]}
             >
                 <Input.TextArea
                     placeholder="Describe your domain..."
