@@ -1,169 +1,140 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Steps, Button, message, Card, Typography } from 'antd';
-import { UserOutlined, ContactsOutlined, CalendarOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import type { Dayjs } from 'dayjs';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import StepName from './steps/StepName';
-import StepContact from './steps/StepContact';
-import StepBirth from './steps/StepBirth';
-import StepSubmit from './steps/StepSubmit';
+import { Steps, message, Card, Typography, Result, Button, Form } from 'antd';
+import { UserOutlined, ShopOutlined, GlobalOutlined } from '@ant-design/icons';
+import StepUserInfo from './steps/StepUserInfo';
+import StepCompanyInfo from './steps/StepCompanyInfo';
+import StepDomainInfo from './steps/StepDomainInfo';
+import { FormData } from './types';
 
 const { Title } = Typography;
 
-interface FormData {
-    firstName: string;
-    lastName: string;
-    dob: Dayjs | null;
-    email: string;
-    phone: string;
-}
-
 const MultiStepForm = () => {
     const [current, setCurrent] = useState(0);
+    const [form] = Form.useForm<FormData>();
+    const [isComplete, setIsComplete] = useState(false);
 
-    const validationSchemas = [
-        Yup.object({
-            firstName: Yup.string().required('First Name is required'),
-            lastName: Yup.string().required('Last Name is required'),
-        }),
-        Yup.object({
-            email: Yup.string().email('Invalid email address').required('Email is required'),
-            phone: Yup.string().required('Phone number is required'),
-        }),
-        Yup.object({
-            dob: Yup.object().required('Date of Birth is required').nullable(),
-        }),
-        Yup.object({}), // No validation for submit step
+    // Define fields for each step to validate on Next
+    const stepFields = [
+        ['name', 'displayName', 'email', 'password', 'confirmPassword'], // Step 0
+        ['companyName', 'companyDisplayName', 'companyDescription'],     // Step 1
+        ['domainName', 'domainDescription']                              // Step 2
     ];
 
-    const formik = useFormik<FormData>({
-        initialValues: {
-            firstName: '',
-            lastName: '',
-            dob: null,
-            email: '',
-            phone: '',
-        },
-        validationSchema: validationSchemas[current],
-        onSubmit: (values) => {
-            console.log('Final Submission:', values);
-            message.success('Registration Complete!');
-        },
-    });
-
-    const next = async () => {
-        // Trigger validation for the current step
-        const errors = await formik.validateForm();
-        const touched = await formik.setTouched(
-            // Mark all fields in current step as touched to show errors
-            Object.keys(validationSchemas[current].fields).reduce((acc, text) => {
-                acc[text] = true;
-                return acc;
-            }, {} as any)
-        );
-
-        // Check if the specific fields for this step are valid
-        // Since validateForm returns ALL errors, we should check if any errors exist for the fields in the current step schema
-        // But simply checking isEmpty(errors) might be enough if we rely on the schema switching, 
-        // however schema switching happens on render. We need to validate against the *current* schema.
-
-        // Actually, since we switch schemas based on `current`, validateForm() uses the current schema!
-        // So if object keys of errors is empty, we are good.
-
-        if (Object.keys(errors).length === 0) {
+    const handleNext = async () => {
+        try {
+            // Validate fields for the current step
+            await form.validateFields(stepFields[current]);
             setCurrent(current + 1);
-        } else {
-            message.error('Please fix the errors before proceeding.');
+        } catch (error) {
+            console.error('Validation failed:', error);
         }
     };
 
-    const prev = () => {
+    const handlePrev = () => {
         setCurrent(current - 1);
+    };
+
+    const onFinish = (values: FormData) => {
+        console.log('Final Submission:', values);
+        setIsComplete(true);
+        message.success('Registration Complete!');
     };
 
     const steps = [
         {
-            title: 'Name',
+            title: 'User Info',
             icon: <UserOutlined />,
-            content: <StepName
-                values={formik.values}
-                handleChange={formik.handleChange}
-                handleBlur={formik.handleBlur}
-                errors={formik.errors}
-                touched={formik.touched}
-            />,
+            content: <StepUserInfo />,
         },
         {
-            title: 'Contact',
-            icon: <ContactsOutlined />,
-            content: <StepContact
-                values={formik.values}
-                handleChange={formik.handleChange}
-                handleBlur={formik.handleBlur}
-                errors={formik.errors}
-                touched={formik.touched}
-            />,
+            title: 'Company Info',
+            icon: <ShopOutlined />,
+            content: <StepCompanyInfo />,
         },
         {
-            title: 'Birth',
-            icon: <CalendarOutlined />,
-            content: <StepBirth
-                values={formik.values}
-                setFieldValue={formik.setFieldValue}
-                setFieldTouched={formik.setFieldTouched}
-                errors={formik.errors}
-                touched={formik.touched}
-            />,
-        },
-        {
-            title: 'Submit',
-            icon: <CheckCircleOutlined />,
-            content: <StepSubmit values={formik.values} />,
+            title: 'Domain Info',
+            icon: <GlobalOutlined />,
+            content: <StepDomainInfo />,
         },
     ];
 
+    if (isComplete) {
+        return (
+            <div className="max-w-md mx-auto p-4 w-full">
+                <Card className="shadow-2xl rounded-2xl overflow-hidden border-none w-full">
+                    <Result
+                        status="success"
+                        title="Successfully Registered!"
+                        subTitle="Your account, company, and domain have been set up."
+                        extra={[
+                            <Button type="primary" key="console" onClick={() => window.location.reload()}>
+                                Go to Console
+                            </Button>,
+                        ]}
+                    />
+                </Card>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-md mx-auto p-4 w-full">
+        <div className="max-w-xl mx-auto p-4 w-full">
             <Card className="shadow-2xl rounded-2xl overflow-hidden border-none w-full">
                 <div className="bg-white p-6">
-                    <h1 className="text-3xl font-bold text-center mb-10 text-gray-800">Signup Form</h1>
+                    <Title level={2} className="text-center mb-8 text-gray-800">Registration</Title>
 
                     <Steps
                         current={current}
-                        className="mb-8 custom-steps"
+                        className="mb-8"
                         labelPlacement="vertical"
                         items={steps.map((item) => ({ key: item.title, title: item.title, icon: item.icon }))}
                     />
 
-                    <div className="steps-content min-h-[250px]">
-                        {steps[current].content}
-                    </div>
+                    <Form
+                        form={form}
+                        layout="vertical"
+                        onFinish={onFinish}
+                        autoComplete="off"
+                        initialValues={{}} // Optional: provide defaults if needed
+                    >
+                        <div className="steps-content">
+                            {steps[current].content}
+                        </div>
 
-                    <div className="steps-action flex justify-between mt-8 gap-4">
-                        <Button
-                            onClick={() => prev()}
-                            size="large"
-                            disabled={current === 0}
-                            className={`w-1/2 font-bold ${current === 0 ? 'opacity-50' : 'bg-pink-600 text-white hover:bg-pink-700 border-none'}`}
-                            style={current !== 0 ? { backgroundColor: '#e91e63', color: 'white' } : {}}
-                        >
-                            PREVIOUS
-                        </Button>
+                        <div className="steps-action flex justify-between mt-8 gap-4">
+                            <Button
+                                onClick={handlePrev}
+                                size="large"
+                                disabled={current === 0}
+                                className={`w-1/2 font-bold ${current === 0 ? 'opacity-50' : 'opacity-100 hover:opacity-100'}`}
+                            >
+                                Previous
+                            </Button>
 
-                        {current < steps.length - 1 && (
-                            <Button type="primary" onClick={() => next()} size="large" className='w-1/2 bg-pink-600 hover:bg-pink-700 font-bold border-none' style={{ backgroundColor: '#e91e63' }}>
-                                NEXT
-                            </Button>
-                        )}
-                        {current === steps.length - 1 && (
-                            <Button type="primary" onClick={formik.submitForm} size="large" className='w-1/2 bg-pink-600 hover:bg-pink-700 font-bold border-none' style={{ backgroundColor: '#e91e63' }}>
-                                SUBMIT
-                            </Button>
-                        )}
-                    </div>
+                            {current < steps.length - 1 && (
+                                <Button
+                                    type="primary"
+                                    onClick={handleNext}
+                                    size="large"
+                                    className='w-1/2 bg-pink-600 hover:bg-pink-700 font-bold border-none'
+                                >
+                                    Next
+                                </Button>
+                            )}
+                            {current === steps.length - 1 && (
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    size="large"
+                                    className='w-1/2 bg-pink-600 hover:bg-pink-700 font-bold border-none'
+                                >
+                                    Submit
+                                </Button>
+                            )}
+                        </div>
+                    </Form>
                 </div>
             </Card>
         </div>
