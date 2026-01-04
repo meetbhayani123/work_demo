@@ -11,6 +11,10 @@
 
 body {
   color: rgb(var(--foreground-rgb));
+  min-height: 100vh;
+}
+
+.page-gradient {
   /* Modern premium gradient background purple/magenta to match the vibe */
   background: linear-gradient(135deg, #a020f0 0%, #302b63 100%);
   min-height: 100vh;
