@@ -13,7 +13,7 @@ const StepUserInfo: React.FC = () => {
                     name="name"
                     rules={[{ required: true, message: 'Please enter your name' }]}
                 >
-                    <Input prefix={<UserOutlined />} placeholder="Full Name" size="large" />
+                    <Input placeholder="Full Name" size="large" />
                 </Form.Item>
 
                 <Form.Item
@@ -21,7 +21,7 @@ const StepUserInfo: React.FC = () => {
                     name="displayName"
                     rules={[{ required: true, message: 'Please enter a display name' }]}
                 >
-                    <Input prefix={<IdcardOutlined />} placeholder="Display Name" size="large" />
+                    <Input placeholder="Display Name" size="large" />
                 </Form.Item>
             </div>
 
@@ -33,7 +33,7 @@ const StepUserInfo: React.FC = () => {
                     { type: 'email', message: 'Please enter a valid email' }
                 ]}
             >
-                <Input prefix={<MailOutlined />} placeholder="Email Address" size="large" />
+                <Input placeholder="Email Address" size="large" />
             </Form.Item>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -45,7 +45,7 @@ const StepUserInfo: React.FC = () => {
                         { min: 6, message: 'Password must be at least 6 characters' }
                     ]}
                 >
-                    <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
+                    <Input.Password placeholder="Password" size="large" />
                 </Form.Item>
 
                 <Form.Item
@@ -64,7 +64,7 @@ const StepUserInfo: React.FC = () => {
                         }),
                     ]}
                 >
-                    <Input.Password prefix={<LockOutlined />} placeholder="Confirm Password" size="large" />
+                    <Input.Password placeholder="Confirm Password" size="large" />
                 </Form.Item>
             </div>
         </div>

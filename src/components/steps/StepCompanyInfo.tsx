@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Form, Input } from 'antd';
-import { ShopOutlined, TagOutlined } from '@ant-design/icons';
 
 const StepCompanyInfo: React.FC = () => {
     return (
@@ -12,7 +11,7 @@ const StepCompanyInfo: React.FC = () => {
                 name="companyName"
                 rules={[{ required: true, message: 'Please enter company name' }]}
             >
-                <Input prefix={<ShopOutlined />} placeholder="Company Name" size="large" />
+                <Input placeholder="Company Name" size="large" />
             </Form.Item>
 
             <Form.Item
@@ -20,7 +19,7 @@ const StepCompanyInfo: React.FC = () => {
                 name="companyDisplayName"
                 rules={[{ required: true, message: 'Please enter company display name' }]}
             >
-                <Input prefix={<TagOutlined />} placeholder="Company Display Name" size="large" />
+                <Input placeholder="Company Display Name" size="large" />
             </Form.Item>
 
             <Form.Item
