@@ -28,7 +28,11 @@ const MultiStepForm = () => {
             await form.validateFields(stepFields[current]);
             setCurrent(current + 1);
         } catch (error) {
-            console.error('Validation failed:', error);
+            console.log('Validation failed:', error);
+            if (error && typeof error === 'object' && 'errorFields' in error) {
+                const fields = (error as any).errorFields;
+                console.log('Error Fields:', fields);
+            }
         }
     };
 
@@ -36,7 +40,8 @@ const MultiStepForm = () => {
         setCurrent(current - 1);
     };
 
-    const onFinish = (values: FormData) => {
+    const onFinish = () => {
+        const values = form.getFieldsValue(true);
         console.log('Final Submission:', values);
         setIsComplete(true);
         message.success('Registration Complete!');
@@ -79,6 +84,7 @@ const MultiStepForm = () => {
         );
     }
 
+
     return (
         <div className="max-w-xl mx-auto p-4 w-full">
             <Card className="shadow-2xl rounded-2xl overflow-hidden border-none w-full">
@@ -88,8 +94,8 @@ const MultiStepForm = () => {
                     <Steps
                         current={current}
                         className="mb-8"
-                        labelPlacement="vertical"
                         items={steps.map((item) => ({ key: item.title, title: item.title, icon: item.icon }))}
+                        titlePlacement="vertical"
                     />
 
                     <Form

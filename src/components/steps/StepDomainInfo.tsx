@@ -12,7 +12,7 @@ const StepDomainInfo: React.FC = () => {
                 name="domainName"
                 rules={[{ required: true, message: 'Please enter domain name' }]}
             >
-                <Input prefix={<GlobalOutlined />} addonBefore="https://" placeholder="yourdomain.com" size="large" />
+                <Input prefix={<><GlobalOutlined /> https://</>} placeholder="yourdomain.com" size="large" />
             </Form.Item>
 
             <Form.Item
