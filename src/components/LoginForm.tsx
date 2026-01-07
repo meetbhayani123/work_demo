@@ -1,16 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Input, Button, message, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { generateRandomString, generateCodeChallenge } from '@/utils/pkce';
 import Link from 'next/link';
 
 const { Title } = Typography;
 
 const LoginForm = () => {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+
+    // Auth Context
+    const { saveCodeVerifier } = useAuth();
+
+    // State for PKCE
+    const [codeChallenge, setCodeChallenge] = useState('');
+    const [codeVerifier, setCodeVerifierState] = useState('');
+
+    // Generate PKCE once on mount
+    React.useEffect(() => {
+        const initPKCE = async () => {
+            const verifier = generateRandomString(128);
+            setCodeVerifierState(verifier);
+            saveCodeVerifier(verifier); // Save to context/localstorage
+
+            const challenge = await generateCodeChallenge(verifier);
+            setCodeChallenge(challenge);
+        };
+        initPKCE();
+    }, []);
+
     const formik = useFormik({
         initialValues: {
             email: '',
@@ -20,9 +45,38 @@ const LoginForm = () => {
             email: Yup.string().email('Invalid email address').required('Email is required'),
             password: Yup.string().required('Password is required'),
         }),
-        onSubmit: (values) => {
-            console.log('Login values:', values);
-            message.success('Login Successful!');
+        onSubmit: async (values) => {
+            setLoading(true);
+            try {
+                // 1. Authorize Request
+                const authResponse = await fetch('/api/auth/authorize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: values.email,
+                        password: values.password,
+                        code_challenge: codeChallenge,
+                        code_challenge_method: 'S256',
+                    }),
+                });
+
+                const authData = await authResponse.json();
+
+                if (!authResponse.ok) {
+                    throw new Error(authData.message || 'Authorization failed');
+                }
+
+                const { code } = authData;
+
+                // 2. Redirect to Callback with Code
+                router.push(`/auth/callback?code=${code}`);
+
+            } catch (error: any) {
+                console.error('Login error:', error);
+                message.error(error.message || 'Something went wrong');
+            } finally {
+                setLoading(false);
+            }
         },
     });
 
@@ -77,6 +131,7 @@ const LoginForm = () => {
                             type="primary"
                             htmlType="submit"
                             size="large"
+                            loading={loading}
                             className="w-full bg-pink-600 hover:bg-pink-700 font-bold border-none h-12 text-lg mt-2"
                             style={{ backgroundColor: '#e91e63' }}
                         >

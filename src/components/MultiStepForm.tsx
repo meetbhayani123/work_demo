@@ -22,6 +22,8 @@ const MultiStepForm = () => {
         ['domainName', 'domainDescription']                              // Step 2
     ];
 
+    const [loading, setLoading] = useState(false);
+
     const handleNext = async () => {
         try {
             // Validate fields for the current step
@@ -40,11 +42,39 @@ const MultiStepForm = () => {
         setCurrent(current - 1);
     };
 
-    const onFinish = () => {
+    const onFinish = async () => {
         const values = form.getFieldsValue(true);
         console.log('Final Submission:', values);
-        setIsComplete(true);
-        message.success('Registration Complete!');
+
+        setLoading(true);
+        try {
+            const response = await fetch('/api/auth/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: values.name,
+                    email: values.email,
+                    password: values.password,
+                    companyName: values.companyName,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Registration failed');
+            }
+
+            setIsComplete(true);
+            message.success('Registration Complete!');
+        } catch (error: any) {
+            console.error('Registration error:', error);
+            message.error(error.message || 'Something went wrong');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const steps = [
@@ -134,6 +164,7 @@ const MultiStepForm = () => {
                                     type="primary"
                                     htmlType="submit"
                                     size="large"
+                                    loading={loading}
                                     className='w-1/2 bg-pink-600 hover:bg-pink-700 font-bold border-none'
                                 >
                                     Submit
