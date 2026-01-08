@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import AuthCode from '@/models/AuthCode';
-import RefreshToken from '@/models/RefreshToken';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -95,14 +94,18 @@ export async function POST(req: Request) {
         );
 
         // Generate Refresh Token (long-lived, e.g., 7 days)
-        const refreshTokenString = generateRandomToken();
-        const refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        // Stateless: We sign it with the secret. No DB storage.
+        const refreshTokenExpires = 7 * 24 * 60 * 60; // seconds
+        const refreshTokenString = jwt.sign(
+            {
+                userId: user._id,
+                tokenType: 'refresh'
+            },
+            secret,
+            { expiresIn: refreshTokenExpires }
+        );
 
-        await RefreshToken.create({
-            token: refreshTokenString,
-            userId: user._id,
-            expiresAt: refreshTokenExpires,
-        });
+        // REMOVED: await RefreshToken.create(...)
 
         await AuthCode.deleteOne({ _id: authCodeDef._id });
 

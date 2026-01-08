@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import { decodeJwt } from 'jose';
+import { setTokens } from '@/utils/token';
 
 export default function AuthCallback() {
     const router = useRouter();
@@ -77,8 +78,7 @@ export default function AuthCallback() {
 
                 const { access_token, refresh_token, id_token } = tokenJson;
 
-                localStorage.setItem('access_token', access_token);
-                localStorage.setItem('refresh_token', refresh_token);
+                setTokens(access_token, refresh_token);
 
                 if (id_token) {
                     const claims = decodeJwt(id_token);

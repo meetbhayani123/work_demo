@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
-import RefreshToken from '@/models/RefreshToken';
 import User from '@/models/User';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 
-function generateRandomToken() {
-    return crypto.randomBytes(40).toString('hex');
+interface RefreshTokenPayload extends jwt.JwtPayload {
+    userId: string;
+    tokenType: string;
 }
 
 export async function POST(req: Request) {
@@ -22,41 +21,49 @@ export async function POST(req: Request) {
             );
         }
 
-        const tokenDef = await RefreshToken.findOne({ token: refresh_token }).populate('userId');
+        const secret = process.env.JWT_SECRET || 'secret';
+        let payload: RefreshTokenPayload;
 
-        if (!tokenDef || tokenDef.revoked || Date.now() >= tokenDef.expiresAt.getTime()) {
-            // If token is revoked, it might be a reuse attempt (security risk)
-            // In a real app, you might want to revoke all tokens for this user tree
+        try {
+            payload = jwt.verify(refresh_token, secret) as RefreshTokenPayload;
+        } catch (err) {
             return NextResponse.json(
                 { message: 'Invalid or expired Refresh Token' },
+                { status: 401 }
+            );
+        }
+
+        if (payload.tokenType !== 'refresh') {
+            return NextResponse.json(
+                { message: 'Invalid token type' },
                 { status: 400 }
             );
         }
 
-        const user = tokenDef.userId;
-        const secret = process.env.JWT_SECRET || 'secret';
-
-        // Rotate Token
-        const newRefreshTokenString = generateRandomToken();
-        const newRefreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-        // Revoke old token
-        tokenDef.revoked = new Date();
-        tokenDef.replacedByToken = newRefreshTokenString;
-        await tokenDef.save();
-
-        // Create new token
-        await RefreshToken.create({
-            token: newRefreshTokenString,
-            userId: user._id,
-            expiresAt: newRefreshTokenExpires,
-        });
+        const user = await User.findById(payload.userId);
+        if (!user) {
+            return NextResponse.json(
+                { message: 'User not found' },
+                { status: 404 }
+            );
+        }
 
         // Generate new Access Token
         const newAccessToken = jwt.sign(
             { userId: user._id, email: user.email },
             secret,
             { expiresIn: '15m' }
+        );
+
+        // Optionally rotate refresh token
+        const refreshTokenExpires = 7 * 24 * 60 * 60; // seconds
+        const newRefreshTokenString = jwt.sign(
+            {
+                userId: user._id,
+                tokenType: 'refresh'
+            },
+            secret,
+            { expiresIn: refreshTokenExpires }
         );
 
         return NextResponse.json({
